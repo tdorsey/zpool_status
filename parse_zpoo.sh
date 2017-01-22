@@ -25,8 +25,10 @@
 #config:   
 #awk 'NR >= 4
 
+#NR > 8 Removes the column header and pool name from the output
+
 #Print the column we want as needed. All awk params are passed in single quotes
 #{ print $x }'
 
 #Print READ, WRITE, CKSUM
-sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 4 { print $1 $3 $4 $5 }'
+sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 8 { print $1 " " $3 " " $4 " " $5 }'
