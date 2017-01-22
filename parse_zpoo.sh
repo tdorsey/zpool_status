@@ -37,18 +37,17 @@ output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 8 { 
 
 function output_metric() {
 
-    metric_name = "zpool_error_count"
+    metric_name="zpool_error_count"
 
-    drive_name = $1;
-    read_error_count = $2
-    write_error_count = $3
-    checksum_error_count = $4
+    drive_name=$1;
+    read_error_count=$2
+    write_error_count=$3
+    checksum_error_count=$4
 
-node_filesystem_avail{device="alpha/srv/cardigann",fstype="zfs",mountpoint="/rootfs/srv/cardigann"} 9.588776894464e+12
-
-    printf("%s{device=\"%s\"", $metric_name, $drive_name)
+    printf '%s{device=\"%s\"}\n\r' "$metric_name" "$drive_name"
 
 }
+
 
 while read -r n r w c
 do output_metric $n $r $w $c
