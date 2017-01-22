@@ -2,9 +2,7 @@
 #parse zpool output for eventual dump to prometheus metrics
 #Column Order - NAME STATE READ WRITE CKSUM
 
-
-#Each portion of the command is explained separately
-
+#Getting the raw output
 #Get zpool status
 #sudo zpool status
 
@@ -17,39 +15,50 @@
  
 
 
-#If Row number > 4, print the column. This hides the status output at the top, usually like
+#If Row number > 8, print the column. This hides the status output at the top, usually like
 #
 #  pool: tank
 # state: ONLINE
 #  scan: scrub repaired 0 
 #config:   
-#awk 'NR >= 4
+#awk 'NR >= 8
 
 #NR > 8 Removes the column header and pool name from the output
 
 #Print the column we want as needed. All awk params are passed in single quotes
 # { print $x }'
 
-
-
+#Output should be space delimited, one metric per line
 #Print NAME, READ, WRITE, CKSUM
-output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 8 { print $1 " " $3 " " $4 " " $5 }' | sed '$d' `
+output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 8 { print $1 " " $3 " " $4 " " $5 }' | sed '$d'`  
 
-function output_metric() {
-
-    metric_name="zpool_error_count"
-
-    drive_name=$1;
-    read_error_count=$2
-    write_error_count=$3
-    checksum_error_count=$4
-
-    printf '%s{device=\"%s\"}\n\r' "$metric_name" "$drive_name"
-
+#Write a property as key:value pairs. 
+#error data holds the label data for the metric
+function write_property() {
+     
+if test "$#" -eq 2; then
+    kvp=`printf '%s=\"%s\",' $1 $2`
+else #Last label in the metric, don't print trailing comma
+    kvp=`printf '%s=\"%s\"' $1 $2`
+fi
+    object_data=$object_data$kvp
 }
 
+function output_metric() {
+    #output a metric for each line in the output file using the object data
+     object_data=''
+     metric_name="zpool_error_count"
+     write_property "device" $1
+     write_property "read_error_count" $2
+     write_property "write_error_count" $3
+     write_property "checksum_error_count" $4 0 #send a third argument so we don't print a trailing comma on the last label
+    
+     printf '%s{ %s }\r\n' $metric_name $object_data
+}
 
+#Read each line of the output variable and turn it into a metric
 while read -r n r w c
 do output_metric $n $r $w $c
 done <<< $output
+
 
