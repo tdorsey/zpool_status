@@ -52,8 +52,10 @@ function output_metric() {
      write_property "read_error_count" $2
      write_property "write_error_count" $3
      write_property "checksum_error_count" $4 0 #send a third argument so we don't print a trailing comma on the last label
-    
-     printf '%s{ %s }\r\n' $metric_name $object_data
+     
+     total_errors=$(( a+b+c ))
+     
+     printf '%s{ %s } %f \r\n' $metric_name $object_data $total_errors
 }
 
 #Read each line of the output variable and turn it into a metric
