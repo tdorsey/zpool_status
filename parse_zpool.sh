@@ -35,7 +35,21 @@
 #Print NAME, READ, WRITE, CKSUM
 output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 8 { print $1 " " $3 " " $4 " " $5 }' | sed '$d' `
 
-while read -r name r w c
-do echo "$name - $r$w$c";
+function output_metric() {
+
+    metric_name="zpool_error_count"
+
+    drive_name=$1;
+    read_error_count=$2
+    write_error_count=$3
+    checksum_error_count=$4
+
+    printf '%s{device=\"%s\"}\n\r' "$metric_name" "$drive_name"
+
+}
+
+
+while read -r n r w c
+do output_metric $n $r $w $c
 done <<< $output
 
