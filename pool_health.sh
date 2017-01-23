@@ -1,4 +1,7 @@
 #!/bin/bash
+
+filepath=$ZFS_COLLECTOR_PATH
+rm $filepath
 #parse zpool output for eventual dump to prometheus metrics
 #Column Order - NAME STATE READ WRITE CKSUM
 
@@ -60,7 +63,7 @@ function output_metric() {
 
 #Read each line of the output variable and turn it into a metric
 while read -r n r w c
-do output_metric $n $r $w $c
+do output_metric $n $r $w $c >> $filepath
 done <<< $output
 
 
