@@ -57,10 +57,8 @@ function output_metric() {
      write_property "checksum_error_count" $4 0 #send a third argument so we don't print a trailing comma on the last label
      
      total_errors=$(( a+b+c ))
-     
-     printf '%s{ %s } %f \r\n' $metric_name $object_data $total_errors
      time_since_epoch_ms=`date +%s` 
-     printf '%s{ %s } %f %i \n' $metric_name $object_data $total_errors $time_since_epoch
+     printf '%s{ %s } %f %i \n' $metric_name $object_data $total_errors $time_since_epoch_ms
 }
 
 #Output metric info
