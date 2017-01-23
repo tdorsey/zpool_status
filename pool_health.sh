@@ -2,6 +2,8 @@
 
 filepath=$ZFS_COLLECTOR_PATH
 rm $filepath
+
+#!/bin/bash
 #parse zpool output for eventual dump to prometheus metrics
 #Column Order - NAME STATE READ WRITE CKSUM
 
@@ -24,16 +26,16 @@ rm $filepath
 # state: ONLINE
 #  scan: scrub repaired 0 
 #config:   
-#awk 'NR >= 8
+#awk 'NR >= 10
 
-#NR > 8 Removes the column header and pool name from the output
+#NR > 10 Removes the column header and pool name from the output
 
 #Print the column we want as needed. All awk params are passed in single quotes
 # { print $x }'
 
 #Output should be space delimited, one metric per line
 #Print NAME, READ, WRITE, CKSUM
-output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 8 { print $1 " " $3 " " $4 " " $5 }' | sed '$d'`  
+output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 10 { print $1 " " $3 " " $4 " " $5 }' | sed '$d'`  
 
 #Write a property as key:value pairs. 
 #error data holds the label data for the metric
@@ -58,7 +60,7 @@ function output_metric() {
      
      total_errors=$(( a+b+c ))
      time_since_epoch_ms=`date +%s` 
-     printf '%s{ %s } %f %i\n' $metric_name $object_data $total_errors $time_since_epoch_ms
+     printf '%s{ %s } %f\n' $metric_name $object_data $total_errors
 }
 
 #Output metric info
@@ -69,5 +71,6 @@ echo "# TYPE zpool_error_count gauge" >> $filepath
 while read -r n r w c
 do output_metric $n $r $w $c >> $filepath
 done <<< $output
+
 
 
