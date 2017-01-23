@@ -20,7 +20,7 @@ rm $filepath
  
 
 
-#If Row number > 8, print the column. This hides the status output at the top, usually like
+#If Row number > 10, print the column. This hides the status output at the top, usually like
 #
 #  pool: tank
 # state: ONLINE
