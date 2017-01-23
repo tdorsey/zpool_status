@@ -1,0 +1,11 @@
+[Unit]
+Description=ZFS Pool Health Monitoring
+After=zfs.target
+
+[Service]
+ExecStart=<path_to_pool_health.sh>
+Restart=always
+Environment="ZFS_COLLECTOR_PATH=<path to output file ending in .prom>"
+
+[Install]
+WantedBy=default.target
