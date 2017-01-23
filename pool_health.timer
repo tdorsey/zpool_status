@@ -1,0 +1,13 @@
+[Unit]
+Description=Runs pool_health.service every hour
+After=zfs.target
+
+[Timer]
+Unit=smart.service
+OnCalendar=1:*:*
+Persistent=true     
+
+[Install]
+WantedBy=multi-user.target
+
+ 
