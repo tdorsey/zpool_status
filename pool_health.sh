@@ -18,22 +18,22 @@ rm $filepath
  
 
 
-#If Row number > 8, print the column. This hides the status output at the top, usually like
+#If Row number > 10, print the column. This hides the status output at the top, usually like
 #
 #  pool: tank
 # state: ONLINE
 #  scan: scrub repaired 0 
 #config:   
-#awk 'NR >= 8
+#awk 'NR >= 10
 
-#NR > 8 Removes the column header and pool name from the output
+#NR > 10 Removes the column header and pool name from the output
 
 #Print the column we want as needed. All awk params are passed in single quotes
 # { print $x }'
 
 #Output should be space delimited, one metric per line
 #Print NAME, READ, WRITE, CKSUM
-output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 8 { print $1 " " $3 " " $4 " " $5 }' | sed '$d'`  
+output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 10 { print $1 " " $3 " " $4 " " $5 }' | sed '$d'`  
 
 #Write a property as key:value pairs. 
 #error data holds the label data for the metric
