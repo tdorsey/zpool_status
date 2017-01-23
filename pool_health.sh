@@ -58,7 +58,7 @@ function output_metric() {
      
      total_errors=$(( a+b+c ))
      time_since_epoch_ms=`date +%s` 
-     printf '%s{ %s } %f %i \n' $metric_name $object_data $total_errors $time_since_epoch_ms
+     printf '%s{ %s } %f %i\n' $metric_name $object_data $total_errors $time_since_epoch_ms
 }
 
 #Output metric info
