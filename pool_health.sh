@@ -61,6 +61,10 @@ function output_metric() {
      printf '%s{ %s } %f \r\n' $metric_name $object_data $total_errors
 }
 
+#Output metric info
+echo "# HELP zpool_error_count zpool status error counts" >> $filepath
+echo "# TYPE zpool_error_count gauge" >> $filepath
+
 #Read each line of the output variable and turn it into a metric
 while read -r n r w c
 do output_metric $n $r $w $c >> $filepath
