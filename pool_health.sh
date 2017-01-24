@@ -1,9 +1,10 @@
 #!/bin/bash
+telegraf_output=$ZFS_TELEGRAF_INPUT_PATH
+rm $telegraf_output
 
-filepath=$ZFS_COLLECTOR_PATH
-rm $filepath
+prometheus_output=$ZFS_PROMETHEUS_COLLECTOR_PATH
+rm $prometheus_output
 
-#!/bin/bash
 #parse zpool output for eventual dump to prometheus metrics
 #Column Order - NAME STATE READ WRITE CKSUM
 
@@ -49,7 +50,17 @@ fi
     object_data=$object_data$kvp
 }
 
-function output_metric() {
+function output_metric_telegraf() {
+    metric=$1
+    read_error_count=$2
+    write_error_count=$3
+    checksum_error_count=$4
+    printf '{"disk":"%s","read_error_count":"%i","write_error_count":"%i", "checksum_error_count":"%i"}\n' \
+     "$disk" "$read_error_count" "$write_error_count" "$checksum_error_count"
+
+}
+
+function output_metric_prometheus() {
     #output a metric for each line in the output file using the object data
      object_data=''
      metric_name="zpool_error_count"
@@ -64,12 +75,14 @@ function output_metric() {
 }
 
 #Output metric info
-echo "# HELP zpool_error_count zpool status error counts" >> $filepath
-echo "# TYPE zpool_error_count gauge" >> $filepath
+echo "# HELP zpool_error_count zpool status error counts" >> $prometheus_output
+echo "# TYPE zpool_error_count gauge" >> $prometheus_output
 
 #Read each line of the output variable and turn it into a metric
 while read -r n r w c
-do output_metric $n $r $w $c >> $filepath
+do 
+output_metric_prometheus $n $r $w $c >> $prometheus_output
+output_metric_telegraf $n $r $w $c >> $telegraf_output
 done <<< $output
 
 
