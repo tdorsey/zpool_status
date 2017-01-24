@@ -4,6 +4,7 @@ rm $telegraf_output
 
 prometheus_output=$ZFS_PROMETHEUS_COLLECTOR_PATH
 rm $prometheus_output
+
 #parse zpool output for eventual dump to prometheus metrics
 #Column Order - NAME STATE READ WRITE CKSUM
 
@@ -70,7 +71,7 @@ function output_metric_prometheus() {
      
      total_errors=$(( a+b+c ))
      time_since_epoch_ms=`date +%s` 
-     printf '%s{ %s } %f %i\n' $metric_name $object_data $total_errors $time_since_epoch_ms
+     printf '%s{ %s } %f\n' $metric_name $object_data $total_errors
 }
 
 #Output metric info
@@ -83,5 +84,6 @@ do
 output_metric_prometheus $n $r $w $c >> $prometheus_output
 output_metric_telegraf $n $r $w $c >> $telegraf_output
 done <<< $output
+
 
 
