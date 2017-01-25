@@ -51,7 +51,7 @@ fi
 }
 
 function output_metric_telegraf() {
-    metric=$1
+    disk=$1
     read_error_count=$2
     write_error_count=$3
     checksum_error_count=$4
