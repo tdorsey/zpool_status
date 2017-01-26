@@ -1,10 +1,9 @@
 #!/bin/bash
-telegraf_output=$ZFS_TELEGRAF_INPUT_PATH
-rm $telegraf_output
 
-prometheus_output=$ZFS_PROMETHEUS_COLLECTOR_PATH
-rm $prometheus_output
+filepath=$ZFS_COLLECTOR_PATH
+rm $filepath
 
+#!/bin/bash
 #parse zpool output for eventual dump to prometheus metrics
 #Column Order - NAME STATE READ WRITE CKSUM
 
@@ -16,27 +15,20 @@ rm $prometheus_output
 #Use egrep instead of grep or the pattern won't work
 #egrep -v 'mirror|raidz
 
+#sed $d is removing the last lines of the output that aren't drive info.
+#awk NR == 1, /NAME/ runs from the first line of the file to the match before printing
+#tail -n +2 removes the first line of output, which is a false positive containing the pool name
+
 #Remove the last line of the file, usually "no known errors, etc"
 # sed '$d' | 
- 
 
-
-#If Row number > 10, print the column. This hides the status output at the top, usually like
-#
-#  pool: tank
-# state: ONLINE
-#  scan: scrub repaired 0 
-#config:   
-#awk 'NR >= 10
-
-#NR > 10 Removes the column header and pool name from the output
 
 #Print the column we want as needed. All awk params are passed in single quotes
 # { print $x }'
 
 #Output should be space delimited, one metric per line
 #Print NAME, READ, WRITE, CKSUM
-output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR >= 10 { print $1 " " $3 " " $4 " " $5 }' | sed '$d'`  
+output=`sudo zpool status | egrep -v 'mirror|raidz' | sed '$d' | awk 'NR == 1, /NAME/ { next } { print $1 " " $3 " " $4 " " $5 }' | sed '$d' | tail -n +2 `  
 
 #Write a property as key:value pairs. 
 #error data holds the label data for the metric
@@ -50,17 +42,7 @@ fi
     object_data=$object_data$kvp
 }
 
-function output_metric_telegraf() {
-    disk=$1
-    read_error_count=$2
-    write_error_count=$3
-    checksum_error_count=$4
-    printf '{"disk":"%s","read_error_count":"%i","write_error_count":"%i", "checksum_error_count":"%i"}\n' \
-     "$disk" "$read_error_count" "$write_error_count" "$checksum_error_count"
-
-}
-
-function output_metric_prometheus() {
+function output_metric() {
     #output a metric for each line in the output file using the object data
      object_data=''
      metric_name="zpool_error_count"
@@ -75,14 +57,12 @@ function output_metric_prometheus() {
 }
 
 #Output metric info
-echo "# HELP zpool_error_count zpool status error counts" >> $prometheus_output
-echo "# TYPE zpool_error_count gauge" >> $prometheus_output
+echo "# HELP zpool_error_count zpool status error counts" >> $filepath
+echo "# TYPE zpool_error_count gauge" >> $filepath
 
 #Read each line of the output variable and turn it into a metric
 while read -r n r w c
-do 
-output_metric_prometheus $n $r $w $c >> $prometheus_output
-output_metric_telegraf $n $r $w $c >> $telegraf_output
+do output_metric $n $r $w $c >> $filepath
 done <<< $output
 
 
